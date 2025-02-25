@@ -4,14 +4,21 @@ const AutocompleteSeachBar = () => {
   const [searchedValue, setSearchedValue] = useState("");
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cacheData, setCacheData] = useState({});
 
   const fetchData = async () => {
+    if (cacheData[searchedValue]) {
+      setData(cacheData[searchedValue]);
+      return;
+    }
+
     setLoading(true);
     const data = await fetch(
       `https://dummyjson.com/recipes/search?q=${searchedValue}`
     );
     const json = await data.json();
     setData(json?.recipes);
+    setCacheData({ ...cacheData, [searchedValue]: json?.recipes });
     setLoading(false);
   };
 
@@ -41,7 +48,22 @@ const AutocompleteSeachBar = () => {
                 key={item?.id}
                 className="text-sm py-[5px] px-[10px] hover:bg-slate-100"
               >
-                {item?.name}
+                {item?.name?.split("")?.map((char, index) => {
+                  return (
+                    <span
+                      key={char + index}
+                      className={`${
+                        searchedValue
+                          ?.toLowerCase()
+                          ?.includes(char?.toLowerCase())
+                          ? "bg-blue-100"
+                          : ""
+                      }`}
+                    >
+                      {char}
+                    </span>
+                  );
+                })}
               </p>
             ))
           : !loading && <p className="text-center my-[30px]">No Data Found!</p>}
